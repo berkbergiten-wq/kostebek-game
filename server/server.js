@@ -265,22 +265,29 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const usedAvatars = room.players.map((player) => player.avatar);
+    const normalizeAvatarPath = (path) => {
+    const clean = (path || "").split("?")[0];
+    return clean.split("/").pop()?.toLowerCase();
+  };
 
-    const allAvatars = [
-      "/avatars/avatar1.png",
-      "/avatars/avatar2.png",
-      "/avatars/avatar3.png",
-      "/avatars/avatar4.png",
-      "/avatars/avatar5.png",
-      "/avatars/avatar6.png",
-      "/avatars/avatar7.png",
-      "/avatars/avatar8.png",
-    ];
+  const usedAvatarNames = room.players.map((player) =>
+    normalizeAvatarPath(player.avatar)
+  );
 
-    const availableAvatars = allAvatars.filter(
-      (avatar) => !usedAvatars.includes(avatar)
-    );
+  const allAvatars = [
+    "/avatars/avatar1.png",
+    "/avatars/avatar2.png",
+    "/avatars/avatar3.png",
+    "/avatars/avatar4.png",
+    "/avatars/avatar5.png",
+    "/avatars/avatar6.png",
+    "/avatars/avatar7.png",
+    "/avatars/avatar8.png",
+  ];
+
+  const availableAvatars = allAvatars.filter(
+    (avatar) => !usedAvatarNames.includes(normalizeAvatarPath(avatar))
+  );
 
     socket.emit("check_room_success", { availableAvatars });
   });

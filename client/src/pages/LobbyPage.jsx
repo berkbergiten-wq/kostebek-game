@@ -13,7 +13,12 @@ export default function LobbyPage() {
   const [phase, setPhase] = useState("LOBBY");
   const [timeLeft, setTimeLeft] = useState(0);
   const startCountdownAudioRef = useRef(null);
-  
+  const categoryMap = {
+  mixed: "Karışık",
+  yes_no: "Eller Yukarı",
+  number_input: "Parmak Say",
+  word_hunt: "Kelime Avı",
+};
 
   useEffect(() => {
     setMySocketId(socket.id || "");
@@ -91,7 +96,9 @@ export default function LobbyPage() {
 
               <div className="lobby-info-box">
                 <span className="lobby-info-label">KATEGORİ</span>
-                <span className="lobby-info-value">{category}</span>
+                <span className="lobby-info-value">
+                  {categoryMap[category] || category}
+                </span>
               </div>
             </div>
 

@@ -28,7 +28,11 @@ export default function HomePage() {
               rel="noreferrer"
               className="home-link-btn"
             >
-              <img src="/skala-logo.png" alt="SkalaCraft" className="home-link-icon" />
+              <img
+                src={`${import.meta.env.BASE_URL}skala-logo.png`}
+                alt="SkalaCraft"
+                className="home-link-icon"
+              />
               <span>skalacraft.com</span>
             </a>
 
@@ -38,12 +42,16 @@ export default function HomePage() {
               rel="noreferrer"
               className="home-link-btn"
             >
-              <img src="/instagram-logo.png" alt="Instagram" className="home-link-icon" />
+              <img
+                src={`${import.meta.env.BASE_URL}instagram-logo.png`}
+                alt="Instagram"
+                className="home-link-icon"
+              />
               <span>Instagram</span>
             </a>
           </div>
         </div>
-      </div> 
+      </div>
     </div>
   );
 }

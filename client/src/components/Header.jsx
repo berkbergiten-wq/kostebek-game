@@ -6,7 +6,11 @@ export default function Header() {
 
   return (
     <div className={`header ${isHome ? "header-home" : ""}`}>
-      <img src="/logo.png" alt="Köstebek" className="header-logo" />
+      <img
+        src={`${import.meta.env.BASE_URL}logo.png`}
+        alt="Köstebek"
+        className="header-logo"
+      />
     </div>
   );
 }

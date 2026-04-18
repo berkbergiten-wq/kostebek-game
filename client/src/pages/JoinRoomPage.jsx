@@ -17,58 +17,68 @@ export default function JoinRoomPage() {
   const [error, setError] = useState("");
 
   const [availableAvatars, setAvailableAvatars] = useState([]);
-  
 
- const handleStep1Continue = () => {
+  const handleStep1Continue = () => {
     if (!roomCode.trim()) return;
-
-    socket.emit("check_room", { roomCode });
-    };
+    socket.emit("check_room", { roomCode: roomCode.trim().toUpperCase() });
+  };
 
   const handleJoin = () => {
     if (!name.trim() || !selectedAvatar) return;
 
-        setError("");
+    setError("");
 
-            console.log("SELECTED AVATAR =", selectedAvatar);
-            console.log("KEYS =", Object.keys(selectedAvatar || {}));
-
-            socket.emit("join_room", {
-                roomCode: roomCode.trim().toUpperCase(),
-                 name: name.trim(),
-                avatar: selectedAvatar.neutral,
-                color: selectedAvatar.color,
-     });
-    };
+    socket.emit("join_room", {
+      roomCode: roomCode.trim().toUpperCase(),
+      name: name.trim(),
+      avatar: selectedAvatar.neutral,
+      color: selectedAvatar.color,
+    });
+  };
 
   const handleBackToStep1 = () => {
     setStep(1);
+    setSelectedAvatar(null);
+    setAvailableAvatars([]);
+    setError("");
   };
 
- useEffect(() => {
+  useEffect(() => {
+    
+
     const handleCheckRoomSuccess = ({ availableAvatars }) => {
-        console.log("SERVERDAN GELEN AVAILABLE AVATARS =", availableAvatars);
-        setError("");
-        setStep(2);
+      console.log("SERVERDAN GELEN AVAILABLE AVATARS =", availableAvatars);
 
-        // server’dan gelen avatarları kullan
-        if (availableAvatars?.length > 0) {
-            const mappedAvailableAvatars = avatars.filter((avatar) =>
-                availableAvatars.includes(avatar.neutral)
-            );
+      setError("");
+      setStep(2);
 
-            setAvailableAvatars(mappedAvailableAvatars);
-            setSelectedAvatar(mappedAvailableAvatars[0] || null);
-            }
+      if (availableAvatars?.length > 0) {
+        const normalize = (path) => {
+          const clean = (path || "").split("?")[0];
+          return clean.split("/").pop()?.toLowerCase();
         };
 
+        const mappedAvailableAvatars = avatars.filter((avatar) =>
+          availableAvatars.some(
+            (serverAvatar) => normalize(serverAvatar) === normalize(avatar.neutral)
+          )
+        );
+
+        setAvailableAvatars(mappedAvailableAvatars);
+        setSelectedAvatar(mappedAvailableAvatars[0] || null);
+      } else {
+        setAvailableAvatars([]);
+        setSelectedAvatar(null);
+      }
+    };
+
     const handleJoinError = (message) => {
-        setError(message);
+      setError(typeof message === "string" ? message : message?.message || "Bir hata oluştu");
     };
 
     const handleJoinSuccess = ({ roomCode }) => {
-        console.log("JOIN SUCCESS:", roomCode);
-        navigate(`/lobby/${roomCode}`);
+      console.log("JOIN SUCCESS:", roomCode);
+      navigate(`/lobby/${roomCode}`);
     };
 
     socket.on("check_room_success", handleCheckRoomSuccess);
@@ -76,16 +86,16 @@ export default function JoinRoomPage() {
     socket.on("join_success", handleJoinSuccess);
 
     return () => {
-        socket.off("check_room_success", handleCheckRoomSuccess);
-        socket.off("join_error", handleJoinError);
-        socket.off("join_success", handleJoinSuccess);
+      socket.off("check_room_success", handleCheckRoomSuccess);
+      socket.off("join_error", handleJoinError);
+      socket.off("join_success", handleJoinSuccess);
     };
-    }, []);
+  }, [navigate]);
 
   return (
     <div className="create-room-page join-room-page">
       <ThemeMusicPlayer enabled={true} />
-        <div className="create-room-overlay" />
+      <div className="create-room-overlay" />
 
       <div className="create-room-inner join-room-inner">
         <div className="create-room-card join-room-card">
@@ -108,18 +118,20 @@ export default function JoinRoomPage() {
                   }
                   maxLength={6}
                 />
+
                 {error && (
-                    <div
-                        style={{
-                        marginBottom: "10px",
-                        textAlign: "center",
-                        fontWeight: 800,
-                        color: "#ffb3b3",
-                        }}
-                    >
-                        {error}
-                    </div>
-                    )}
+                  <div
+                    style={{
+                      marginBottom: "10px",
+                      textAlign: "center",
+                      fontWeight: 800,
+                      color: "#ffb3b3",
+                    }}
+                  >
+                    {error}
+                  </div>
+                )}
+
                 <button
                   className="home-main-btn join-room-main-btn"
                   onClick={handleStep1Continue}
@@ -148,25 +160,25 @@ export default function JoinRoomPage() {
                 </h2>
 
                 <AvatarPicker
-                    selected={selectedAvatar}
-                    onSelect={setSelectedAvatar}
-                    avatarsOverride={availableAvatars}
-                    />
+                  selected={selectedAvatar}
+                  onSelect={setSelectedAvatar}
+                  avatarsOverride={availableAvatars}
+                />
 
                 <div className="join-room-actions">
-                  
-                    {error && (
-                        <div
-                            style={{
-                            marginBottom: 10,
-                            textAlign: "center",
-                            fontWeight: 800,
-                            color: "#ffb3b3",
-                            }}
-                        >
-                            {error}
-                        </div>
-                        )}
+                  {error && (
+                    <div
+                      style={{
+                        marginBottom: 10,
+                        textAlign: "center",
+                        fontWeight: 800,
+                        color: "#ffb3b3",
+                      }}
+                    >
+                      {error}
+                    </div>
+                  )}
+
                   <button
                     className="home-main-btn join-room-main-btn"
                     onClick={handleJoin}
@@ -174,6 +186,7 @@ export default function JoinRoomPage() {
                   >
                     KATIL
                   </button>
+
                   <button
                     className="join-room-secondary-btn"
                     onClick={handleBackToStep1}

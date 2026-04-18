@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import CreateRoomPage from "./pages/CreateRoomPage";
 import JoinRoomPage from "./pages/JoinRoomPage";
@@ -9,7 +9,6 @@ import { socket } from "./socket";
 import { useEffect } from "react";
 
 export default function App() {
-  
   useEffect(() => {
     socket.on("connect", () => {
       console.log("CLIENT BAĞLANDI:", socket.id);
@@ -28,8 +27,8 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-    <Header />
+    <>
+      <Header />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/create" element={<CreateRoomPage />} />
@@ -37,6 +36,6 @@ export default function App() {
         <Route path="/lobby/:roomCode" element={<LobbyPage />} />
         <Route path="/game" element={<GamePage />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }

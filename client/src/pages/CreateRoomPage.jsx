@@ -11,30 +11,29 @@ const categoryOptions = [
   {
     key: "mixed",
     label: "Karışık",
-    image: "/category-karisik.png",
+    image: `${import.meta.env.BASE_URL}category-karisik.png`,
   },
   {
     key: "yes_no",
     label: "Eller Yukarı",
-    image: "/category-eller-yukari.png",
+    image: `${import.meta.env.BASE_URL}category-eller-yukari.png`,
   },
   {
     key: "number_input",
     label: "Parmak Say",
-    image: "/category-parmak-say.png",
+    image: `${import.meta.env.BASE_URL}category-parmak-say.png`,
   },
   {
     key: "select_player",
     label: "Gösteri Zamanı",
-    image: "/category-gosteri-zamani.png",
+    image: `${import.meta.env.BASE_URL}category-gosteri-zamani.png`,
   },
   {
     key: "word_hunt",
     label: "Kelime Avı",
-    image: "/category-kelime-avi.png",
+    image: `${import.meta.env.BASE_URL}category-kelime-avi.png`,
   },
 ];
-
 export default function CreateRoomPage() {
   const navigate = useNavigate();
 
