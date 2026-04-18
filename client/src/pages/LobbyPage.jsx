@@ -17,6 +17,7 @@ export default function LobbyPage() {
   mixed: "Karışık",
   yes_no: "Eller Yukarı",
   number_input: "Parmak Say",
+  select_player: "Gösteri Zamanı",
   word_hunt: "Kelime Avı",
 };
 
@@ -29,7 +30,7 @@ export default function LobbyPage() {
 
     const handleRoomUpdate = (room) => {
       setPlayers(room.players || []);
-      setCategory(room.gameCategory || "Karışık");
+      setCategory(categoryMap[room.gameCategory] || room.gameCategory || "Karışık");
       setPhase(room.phase || "LOBBY");
       setTimeLeft(room.timeLeft ?? 0);
 
@@ -96,9 +97,7 @@ export default function LobbyPage() {
 
               <div className="lobby-info-box">
                 <span className="lobby-info-label">KATEGORİ</span>
-                <span className="lobby-info-value">
-                  {categoryMap[category] || category}
-                </span>
+                <span className="lobby-info-value">{category}</span>
               </div>
             </div>
 
@@ -149,7 +148,7 @@ export default function LobbyPage() {
                     onClick={() => {
                       console.log("START_GAME GİDİYOR:", roomCode);
 
-                      startCountdownAudioRef.current = new Audio("/countdown.mp3");
+                      startCountdownAudioRef.current = new Audio(`${import.meta.env.BASE_URL}countdown.mp3`);
                       startCountdownAudioRef.current.volume = 0.8;
                       startCountdownAudioRef.current.play().catch(() => {});
 

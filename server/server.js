@@ -192,7 +192,7 @@ function advanceWordHuntTurn(room, roomCode) {
   room.wordHuntActivePlayerId = nextPlayerId;
 
   // süre reset
-  room.timeLeft = 30;
+  room.timeLeft = 20;
 
   io.to(roomCode).emit("room_update", getSafeRoom(room));
 }
@@ -399,7 +399,7 @@ io.on("connection", (socket) => {
                 setupRoundQuestion(room);
 
         room.phase = "QUESTION";
-        room.timeLeft = room.currentQuestionType === "word_hunt" ? 30 : 10;
+        room.timeLeft = room.currentQuestionType === "word_hunt" ? 20 : 20;
 
           io.to(roomCode).emit("room_update", getSafeRoom(room));
           if (room.questionTimer) {
@@ -452,7 +452,7 @@ io.on("connection", (socket) => {
                       room.showTimer = null;
 
                       room.phase = "MOLE_VOTING";
-                      room.timeLeft = 15;
+                      room.timeLeft = 30;
 
                       io.to(roomCode).emit("room_update", getSafeRoom(room));
 
@@ -512,7 +512,7 @@ io.on("connection", (socket) => {
               room.questionTimer = null;
 
               room.phase = "SHOW_SELECTIONS";
-              room.timeLeft = 10;
+              room.timeLeft = 30;
 
               const showTimer = setInterval(() => {
                 room.timeLeft -= 1;
@@ -521,7 +521,7 @@ io.on("connection", (socket) => {
                   clearInterval(showTimer);
 
                   room.phase = "MOLE_VOTING";
-                  room.timeLeft = 15;
+                  room.timeLeft = 30;
 
                   io.to(roomCode).emit("room_update", getSafeRoom(room));
 
@@ -692,7 +692,7 @@ socket.on("submit_word_hunt", ({ roomCode, word }) => {
       room.showTimer = null;
 
       room.phase = "MOLE_VOTING";
-      room.timeLeft = 15;
+      room.timeLeft = 30;
 
       io.to(roomCode).emit("room_update", getSafeRoom(room));
 
@@ -851,7 +851,7 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
                   room.showTimer = null;
 
                   room.phase = "MOLE_VOTING";
-                  room.timeLeft = 15;
+                  room.timeLeft = 30;
 
                   io.to(roomCode).emit("room_update", getSafeRoom(room));
 
@@ -916,7 +916,7 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
           room.questionTimer = null;
 
           room.phase = "SHOW_SELECTIONS";
-          room.timeLeft = 10;
+          room.timeLeft = 30;
 
           io.to(roomCode).emit("room_update", getSafeRoom(room));
 
@@ -928,7 +928,7 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
               room.showTimer = null;
 
               room.phase = "MOLE_VOTING";
-              room.timeLeft = 15;
+              room.timeLeft = 30;
 
               io.to(roomCode).emit("room_update", getSafeRoom(room));
 

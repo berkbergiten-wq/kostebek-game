@@ -60,7 +60,7 @@ export default function GamePage() {
   if (!room) return;
 
   if (!countdownAudioRef.current) {
-    countdownAudioRef.current = new Audio("/countdown.mp3");
+    countdownAudioRef.current = new Audio(`${import.meta.env.BASE_URL}countdown.mp3`);
     countdownAudioRef.current.volume = 0.6;
   }
 
@@ -102,7 +102,7 @@ useEffect(() => {
     if (countdownAudioUnlockedRef.current) return;
 
     if (!countdownAudioRef.current) {
-      countdownAudioRef.current = new Audio("/countdown.mp3");
+      countdownAudioRef.current = new Audio(`${import.meta.env.BASE_URL}countdown.mp3`);
       countdownAudioRef.current.volume = 0.6;
     }
 
