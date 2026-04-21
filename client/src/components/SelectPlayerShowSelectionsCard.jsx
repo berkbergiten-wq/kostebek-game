@@ -1,6 +1,8 @@
 export default function SelectPlayerShowSelectionsCard({
   question,
   players,
+  me,
+  onToggleReady,
 }) {
   const getPlayerById = (id) => players.find((p) => p.id === id);
 
@@ -38,6 +40,15 @@ export default function SelectPlayerShowSelectionsCard({
             </div>
           );
         })}
+      </div>
+      <div className="result-bottom-action">
+        <button
+          type="button"
+          className={`result-ready-btn ${me?.showReady ? "is-selected" : ""}`}
+          onClick={onToggleReady}
+        >
+          HAZIR
+        </button>
       </div>
     </div>
   );

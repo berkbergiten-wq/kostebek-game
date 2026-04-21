@@ -275,6 +275,8 @@ useEffect(() => {
             <YesNoShowSelectionsCard
                 question={room.currentQuestion}
                 players={room.players || []}
+                me={me}
+                onToggleReady={() => socket.emit("toggle_show_ready", { roomCode })}
             />
             )}
 
@@ -283,6 +285,8 @@ useEffect(() => {
                 <NumberShowSelectionsCard
                 question={room.currentQuestion}
                 players={room.players || []}
+                me={me}
+                onToggleReady={() => socket.emit("toggle_show_ready", { roomCode })}
                 />
             )}
         {room.phase === "SHOW_SELECTIONS" &&
@@ -290,6 +294,8 @@ useEffect(() => {
             <SelectPlayerShowSelectionsCard
               question={room.currentQuestion}
               players={room.players || []}
+              me={me}
+              onToggleReady={() => socket.emit("toggle_show_ready", { roomCode })}
             />
         )}
         {room.phase === "SHOW_SELECTIONS" &&
@@ -297,6 +303,8 @@ useEffect(() => {
             <WordHuntShowSelectionsCard
               question={room.currentQuestion}
               players={room.players || []}
+              me={me}
+              onToggleReady={() => socket.emit("toggle_show_ready", { roomCode })}
             />
         )}
         {room.phase === "MOLE_VOTING" && (

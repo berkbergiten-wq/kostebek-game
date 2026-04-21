@@ -26,6 +26,13 @@ export default function SelectionPlayerCard({
       >
         {answerText}
       </div>
+      <div
+        className={`result-player-ready-tag ${
+          player.showReady ? "is-ready" : "is-not-ready"
+        }`}
+      >
+        {player.showReady ? "HAZIR" : "BEKLİYOR"}
+      </div>
     </div>
   );
 }

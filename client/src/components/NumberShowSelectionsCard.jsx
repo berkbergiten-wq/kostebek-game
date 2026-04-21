@@ -3,6 +3,8 @@ import SelectionPlayerCard from "./SelectionPlayerCard";
 export default function NumberShowSelectionsCard({
   question,
   players,
+  me,
+  onToggleReady,
 }) {
   return (
     <div className="shared-card yesno-show-card">
@@ -30,6 +32,15 @@ export default function NumberShowSelectionsCard({
             />
           );
         })}
+      </div>
+      <div className="result-bottom-action">
+        <button
+          type="button"
+          className={`result-ready-btn ${me?.showReady ? "is-selected" : ""}`}
+          onClick={onToggleReady}
+        >
+          HAZIR
+        </button>
       </div>
     </div>
   );

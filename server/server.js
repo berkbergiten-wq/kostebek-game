@@ -476,6 +476,10 @@ function advanceWordHuntTurn(room, roomCode) {
     room.phase = "SHOW_SELECTIONS";
     room.timeLeft = 10;
 
+    room.players.forEach((p) => {
+    p.showReady = false;
+  });
+
     io.to(roomCode).emit("room_update", getSafeRoom(room));
     return;
   }
@@ -508,6 +512,7 @@ io.on("connection", (socket) => {
           color: data.color,
           isHost: true,
           ready: false,
+           showReady: false,
           connected: true,
           score: 0,
           roundPoints: 0,
@@ -615,6 +620,7 @@ io.on("connection", (socket) => {
       color: data.color,
       isHost: false,
       ready: false,
+      showReady: false,
       connected: true,
       score: 0,
       roundPoints: 0,
@@ -808,6 +814,10 @@ io.on("connection", (socket) => {
 
               room.phase = "SHOW_SELECTIONS";
               room.timeLeft = 30;
+
+              room.players.forEach((p) => {
+              p.showReady = false;
+            });
 
               const showTimer = setInterval(() => {
                 room.timeLeft -= 1;
@@ -1213,6 +1223,10 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
           room.phase = "SHOW_SELECTIONS";
           room.timeLeft = 30;
 
+          room.players.forEach((p) => {
+          p.showReady = false;
+        });
+
           io.to(roomCode).emit("room_update", getSafeRoom(room));
 
           room.showTimer = setInterval(() => {
@@ -1286,6 +1300,46 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
 
     io.to(roomCode).emit("room_update", getSafeRoom(room));
   }, 1000);
+});
+
+  socket.on("toggle_show_ready", ({ roomCode }) => {
+  const room = rooms[roomCode];
+  if (!room) return;
+
+  const player = room.players.find((p) => p.id === socket.id);
+  if (!player) return;
+
+  // toggle
+  player.showReady = !player.showReady;
+
+  // herkes hazır mı?
+  const allReady = room.players.every((p) => p.showReady);
+
+  if (allReady && room.phase === "SHOW_SELECTIONS") {
+    clearInterval(room.questionTimer);
+
+    room.phase = "MOLE_VOTING";
+    room.timeLeft = 30;
+
+    io.to(roomCode).emit("room_update", getSafeRoom(room));
+
+    room.questionTimer = setInterval(() => {
+      room.timeLeft--;
+
+      if (room.timeLeft <= 0) {
+        clearInterval(room.questionTimer);
+
+        // BURASI SENDE ZATEN VAR → mevcut akış devam etsin
+        handleMoleVotingEnd(roomCode); // veya sende ne kullanıyorsan
+      }
+
+      io.to(roomCode).emit("room_update", getSafeRoom(room));
+    }, 1000);
+
+    return;
+  }
+
+  io.to(roomCode).emit("room_update", getSafeRoom(room));
 });
 
   // DISCONNECT
