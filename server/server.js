@@ -513,6 +513,7 @@ io.on("connection", (socket) => {
           isHost: true,
           ready: false,
            showReady: false,
+           votingReady: false,
           connected: true,
           score: 0,
           roundPoints: 0,
@@ -621,6 +622,7 @@ io.on("connection", (socket) => {
       isHost: false,
       ready: false,
       showReady: false,
+      votingReady: false,
       connected: true,
       score: 0,
       roundPoints: 0,
@@ -918,6 +920,7 @@ io.on("connection", (socket) => {
     if (!player) return;
 
     player.moleVote = targetId;
+    player.votingReady = false;
 
     io.to(roomCode).emit("room_update", getSafeRoom(room));
   });
@@ -1082,6 +1085,7 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
   room.players.forEach((p) => {
     p.ready = false;
     p.moleVote = null;
+    p.votingReady = false;
     p.vote = null;
     p.yesNoAnswer = "";
     p.numberAnswer = null;
@@ -1302,45 +1306,146 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
   }, 1000);
 });
 
-  socket.on("toggle_show_ready", ({ roomCode }) => {
-  const room = rooms[roomCode];
-  if (!room) return;
+   socket.on("toggle_show_ready", ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room || room.phase !== "SHOW_SELECTIONS") return;
 
-  const player = room.players.find((p) => p.id === socket.id);
-  if (!player) return;
+    const player = room.players.find((p) => p.id === socket.id);
+    if (!player) return;
 
-  // toggle
-  player.showReady = !player.showReady;
+    player.showReady = !player.showReady;
 
-  // herkes hazır mı?
-  const allReady = room.players.every((p) => p.showReady);
+    io.to(roomCode).emit("room_update", getSafeRoom(room));
 
-  if (allReady && room.phase === "SHOW_SELECTIONS") {
-    clearInterval(room.questionTimer);
+    const allReady =
+      room.players.length > 0 &&
+      room.players.every((p) => p.showReady);
+
+    if (!allReady) return;
+
+    if (room.questionTimer) {
+      clearInterval(room.questionTimer);
+      room.questionTimer = null;
+    }
+
+    if (room.showTimer) {
+      clearInterval(room.showTimer);
+      room.showTimer = null;
+    }
+
+    if (room.votingTimer) {
+      clearInterval(room.votingTimer);
+      room.votingTimer = null;
+    }
+
+    room.players.forEach((p) => {
+      p.showReady = false;
+      p.votingReady = false;
+    });
 
     room.phase = "MOLE_VOTING";
     room.timeLeft = 30;
 
     io.to(roomCode).emit("room_update", getSafeRoom(room));
 
-    room.questionTimer = setInterval(() => {
-      room.timeLeft--;
+    room.votingTimer = setInterval(() => {
+      room.timeLeft -= 1;
 
       if (room.timeLeft <= 0) {
-        clearInterval(room.questionTimer);
+        clearInterval(room.votingTimer);
+        room.votingTimer = null;
 
-        // BURASI SENDE ZATEN VAR → mevcut akış devam etsin
-        handleMoleVotingEnd(roomCode); // veya sende ne kullanıyorsan
+        const moleId = room.moleId;
+
+        room.players.forEach((player) => {
+          player.roundPoints = 0;
+          player.ready = false;
+          player.votingReady = false;
+        });
+
+        const molePlayer = room.players.find((p) => p.id === moleId);
+
+        if (molePlayer) {
+          const wrongVotesCount = room.players.filter(
+            (p) => p.id !== moleId && p.moleVote !== moleId
+          ).length;
+
+          molePlayer.roundPoints = wrongVotesCount;
+          molePlayer.score += wrongVotesCount;
+        }
+
+        room.players.forEach((player) => {
+          if (player.id !== moleId && player.moleVote === moleId) {
+            player.roundPoints = 1;
+            player.score += 1;
+          }
+        });
+
+        room.phase = "RESULT";
+        room.timeLeft = 0;
+
+        io.to(roomCode).emit("room_update", getSafeRoom(room));
+        return;
       }
 
       io.to(roomCode).emit("room_update", getSafeRoom(room));
     }, 1000);
+  });
 
-    return;
-  }
+  socket.on("toggle_mole_voting_ready", ({ roomCode }) => {
+    const room = rooms[roomCode];
+    if (!room || room.phase !== "MOLE_VOTING") return;
 
-  io.to(roomCode).emit("room_update", getSafeRoom(room));
-});
+    const player = room.players.find((p) => p.id === socket.id);
+    if (!player) return;
+
+    player.votingReady = !player.votingReady;
+
+    io.to(roomCode).emit("room_update", getSafeRoom(room));
+
+    const allReady =
+      room.players.length > 0 &&
+      room.players.every((p) => p.votingReady);
+
+    if (!allReady) return;
+
+    if (room.votingTimer) {
+      clearInterval(room.votingTimer);
+      room.votingTimer = null;
+    }
+
+    const moleId = room.moleId;
+
+    room.players.forEach((player) => {
+      player.roundPoints = 0;
+      player.ready = false;
+      player.votingReady = false;
+    });
+
+    const molePlayer = room.players.find((p) => p.id === moleId);
+
+    if (molePlayer) {
+      const wrongVotesCount = room.players.filter(
+        (p) => p.id !== moleId && p.moleVote !== moleId
+      ).length;
+
+      molePlayer.roundPoints = wrongVotesCount;
+      molePlayer.score += wrongVotesCount;
+    }
+
+    room.players.forEach((player) => {
+      if (player.id !== moleId && player.moleVote === moleId) {
+        player.roundPoints = 1;
+        player.score += 1;
+      }
+    });
+
+    room.phase = "RESULT";
+    room.timeLeft = 0;
+
+    io.to(roomCode).emit("room_update", getSafeRoom(room));
+  });
+
 
   // DISCONNECT
   socket.on("disconnect", () => {
