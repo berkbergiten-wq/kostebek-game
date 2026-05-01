@@ -640,7 +640,10 @@ socket.on("join_room", (data) => {
 
     socket.join(data.roomCode);
 
-    socket.emit("join_success", { roomCode: data.roomCode });
+    socket.emit("join_success", {
+  roomCode: data.roomCode,
+  phase: room.phase,
+});
     io.to(data.roomCode).emit("room_update", getSafeRoom(room));
 
     console.log("oyuncu tekrar bağlandı:", data.roomCode, data.name);
@@ -654,7 +657,10 @@ socket.on("join_room", (data) => {
 
   const alreadyInRoom = room.players.some((player) => player.id === socket.id);
   if (alreadyInRoom) {
-    socket.emit("join_success", { roomCode: data.roomCode });
+    socket.emit("join_success", {
+  roomCode: data.roomCode,
+  phase: room.phase,
+});
     io.to(data.roomCode).emit("room_update", getSafeRoom(room));
     return;
   }
@@ -681,7 +687,10 @@ socket.on("join_room", (data) => {
 
   socket.join(data.roomCode);
 
-  socket.emit("join_success", { roomCode: data.roomCode });
+  socket.emit("join_success", {
+  roomCode: data.roomCode,
+  phase: room.phase,
+});
   io.to(data.roomCode).emit("room_update", getSafeRoom(room));
 
   console.log("oyuncu katıldı:", data.roomCode);
