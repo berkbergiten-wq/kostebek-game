@@ -594,44 +594,48 @@ io.on("connection", (socket) => {
   });
 
   // JOIN ROOM
-  socket.on("join_room", (data) => {
-    const room = rooms[data.roomCode];
+  // JOIN ROOM
+socket.on("join_room", (data) => {
+  const room = rooms[data.roomCode];
 
-    if (!room) {
-      socket.emit("join_error", { message: "Oda bulunamadı" });
-      return;
+  if (!room) {
+    socket.emit("join_error", { message: "Oda bulunamadı" });
+    return;
+  }
+
+  const sameNameDisconnectedPlayer = room.players.find(
+    (player) =>
+      player.name === data.name &&
+      player.connected === false
+  );
+
+  if (sameNameDisconnectedPlayer) {
+    const oldPlayerId = sameNameDisconnectedPlayer.id;
+    const newPlayerId = socket.id;
+
+    sameNameDisconnectedPlayer.id = newPlayerId;
+    sameNameDisconnectedPlayer.connected = true;
+
+    if (room.moleId === oldPlayerId) {
+      room.moleId = newPlayerId;
     }
 
-    if (room.players.length >= room.maxPlayers) {
-      socket.emit("join_error", { message: "Oda dolu" });
-      return;
+    if (room.wordHuntActivePlayerId === oldPlayerId) {
+      room.wordHuntActivePlayerId = newPlayerId;
     }
 
-    const alreadyInRoom = room.players.some((player) => player.id === socket.id);
-    if (alreadyInRoom) {
-      socket.emit("join_success", { roomCode: data.roomCode });
-      io.to(data.roomCode).emit("room_update", getSafeRoom(room));
-      return;
-    }
+    room.wordHuntTurnOrder = room.wordHuntTurnOrder.map((id) =>
+      id === oldPlayerId ? newPlayerId : id
+    );
 
-    room.players.push({
-      id: socket.id,
-      name: data.name,
-      avatar: data.avatar,
-      color: data.color,
-      isHost: false,
-      ready: false,
-      showReady: false,
-      votingReady: false,
-      connected: true,
-      score: 0,
-      roundPoints: 0,
-      moleVote: null,
-      vote: null,
-      yesNoAnswer: "",
-      numberAnswer: null,
-      wordHuntDraft: "",
-      wordHuntAnswers: [],
+    room.players.forEach((player) => {
+      if (player.moleVote === oldPlayerId) {
+        player.moleVote = newPlayerId;
+      }
+
+      if (player.vote === oldPlayerId) {
+        player.vote = newPlayerId;
+      }
     });
 
     socket.join(data.roomCode);
@@ -639,8 +643,49 @@ io.on("connection", (socket) => {
     socket.emit("join_success", { roomCode: data.roomCode });
     io.to(data.roomCode).emit("room_update", getSafeRoom(room));
 
-    console.log("oyuncu katıldı:", data.roomCode);
+    console.log("oyuncu tekrar bağlandı:", data.roomCode, data.name);
+    return;
+  }
+
+  if (room.players.length >= room.maxPlayers) {
+    socket.emit("join_error", { message: "Oda dolu" });
+    return;
+  }
+
+  const alreadyInRoom = room.players.some((player) => player.id === socket.id);
+  if (alreadyInRoom) {
+    socket.emit("join_success", { roomCode: data.roomCode });
+    io.to(data.roomCode).emit("room_update", getSafeRoom(room));
+    return;
+  }
+
+  room.players.push({
+    id: socket.id,
+    name: data.name,
+    avatar: data.avatar,
+    color: data.color,
+    isHost: false,
+    ready: false,
+    showReady: false,
+    votingReady: false,
+    connected: true,
+    score: 0,
+    roundPoints: 0,
+    moleVote: null,
+    vote: null,
+    yesNoAnswer: "",
+    numberAnswer: null,
+    wordHuntDraft: "",
+    wordHuntAnswers: [],
   });
+
+  socket.join(data.roomCode);
+
+  socket.emit("join_success", { roomCode: data.roomCode });
+  io.to(data.roomCode).emit("room_update", getSafeRoom(room));
+
+  console.log("oyuncu katıldı:", data.roomCode);
+});
 
   // GET ROOM STATE
   socket.on("get_room_state", ({ roomCode }) => {
