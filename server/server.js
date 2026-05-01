@@ -832,11 +832,13 @@ io.on("connection", (socket) => {
 
                   io.to(roomCode).emit("room_update", getSafeRoom(room));
 
-                  const votingTimer = setInterval(() => {
+                  room.votingTimer = setInterval(() => {
                     room.timeLeft -= 1;
 
                     if (room.timeLeft <= 0) {
                       clearInterval(votingTimer);
+                      clearInterval(room.votingTimer);
+                      room.votingTimer = null;
 
                       const moleId = room.moleId;
 
