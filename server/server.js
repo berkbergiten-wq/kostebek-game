@@ -821,11 +821,14 @@ io.on("connection", (socket) => {
               p.showReady = false;
             });
 
-              const showTimer = setInterval(() => {
+              room.showTimer = setInterval(() => {
                 room.timeLeft -= 1;
 
                 if (room.timeLeft <= 0) {
-                  clearInterval(showTimer);
+                  clearInterval(room.showTimer);
+                  room.showTimer = null;
+
+                  if (room.phase !== "SHOW_SELECTIONS") return;
 
                   room.phase = "MOLE_VOTING";
                   room.timeLeft = 30;
@@ -836,7 +839,6 @@ io.on("connection", (socket) => {
                     room.timeLeft -= 1;
 
                     if (room.timeLeft <= 0) {
-                      clearInterval(votingTimer);
                       clearInterval(room.votingTimer);
                       room.votingTimer = null;
 
