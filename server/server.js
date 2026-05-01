@@ -557,43 +557,45 @@ io.on("connection", (socket) => {
   });
 
   // CHECK ROOM
-  socket.on("check_room", ({ roomCode }) => {
-    const normalizedRoomCode = (roomCode || "").trim().toUpperCase();
-    const room = rooms[normalizedRoomCode];
+    socket.on("check_room", ({ roomCode }) => {
+      const normalizedRoomCode = (roomCode || "").trim().toUpperCase();
+      const room = rooms[normalizedRoomCode];
 
-    if (!room) {
-      socket.emit("join_error", "Oda bulunamadı");
-      return;
-    }
+      if (!room) {
+        socket.emit("join_error", "Oda bulunamadı");
+        return;
+      }
 
-    const normalizeAvatarPath = (path) => {
-    const clean = (path || "").split("?")[0];
-    return clean.split("/").pop()?.toLowerCase();
-  };
+      const normalizeAvatarPath = (path) => {
+        const clean = (path || "").split("?")[0];
+        return clean.split("/").pop()?.toLowerCase();
+      };
 
-  const usedAvatarNames = room.players.map((player) =>
-    normalizeAvatarPath(player.avatar)
-  );
+      const usedAvatarNames = room.players.map((player) =>
+        normalizeAvatarPath(player.avatar)
+      );
 
-  const allAvatars = [
-    "/avatars/avatar1.png",
-    "/avatars/avatar2.png",
-    "/avatars/avatar3.png",
-    "/avatars/avatar4.png",
-    "/avatars/avatar5.png",
-    "/avatars/avatar6.png",
-    "/avatars/avatar7.png",
-    "/avatars/avatar8.png",
-  ];
+      const allAvatars = [
+        "/avatars/avatar1.png",
+        "/avatars/avatar2.png",
+        "/avatars/avatar3.png",
+        "/avatars/avatar4.png",
+        "/avatars/avatar5.png",
+        "/avatars/avatar6.png",
+        "/avatars/avatar7.png",
+        "/avatars/avatar8.png",
+      ];
 
-  const availableAvatars = allAvatars.filter(
-    (avatar) => !usedAvatarNames.includes(normalizeAvatarPath(avatar))
-  );
+      const availableAvatars = allAvatars.filter(
+        (avatar) => !usedAvatarNames.includes(normalizeAvatarPath(avatar))
+      );
 
-    socket.emit("check_room_success", { availableAvatars });
-  });
+      socket.emit("check_room_success", {
+        availableAvatars,
+      });
+    });
 
-  // JOIN ROOM
+    
   // JOIN ROOM
 socket.on("join_room", (data) => {
   const room = rooms[data.roomCode];
@@ -602,12 +604,19 @@ socket.on("join_room", (data) => {
     socket.emit("join_error", { message: "Oda bulunamadı" });
     return;
   }
+  
 
   const sameNameDisconnectedPlayer = room.players.find(
     (player) =>
       player.name === data.name &&
       player.connected === false
   );
+
+  if (sameNameDisconnectedPlayer) {
+  // avatar seçimini tamamen ignore et
+  data.avatar = sameNameDisconnectedPlayer.avatar;
+  data.color = sameNameDisconnectedPlayer.color;
+}
 
   if (sameNameDisconnectedPlayer) {
     const oldPlayerId = sameNameDisconnectedPlayer.id;
@@ -649,6 +658,13 @@ socket.on("join_room", (data) => {
     console.log("oyuncu tekrar bağlandı:", data.roomCode, data.name);
     return;
   }
+
+  if (room.phase !== "LOBBY") {
+  socket.emit("join_error", {
+    message: "Oyun başladığı için katılamazsınız!",
+  });
+  return;
+}
 
   if (room.players.length >= room.maxPlayers) {
     socket.emit("join_error", { message: "Oda dolu" });
