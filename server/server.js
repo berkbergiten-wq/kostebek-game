@@ -474,7 +474,7 @@ function advanceWordHuntTurn(room, roomCode) {
   // 2 tur tamamlandıysa → SHOW_SELECTIONS
   if (room.wordHuntRoundCycle > 2) {
     room.phase = "SHOW_SELECTIONS";
-    room.timeLeft = 10;
+    room.timeLeft = 30;
 
     room.players.forEach((p) => {
     p.showReady = false;
@@ -700,7 +700,7 @@ io.on("connection", (socket) => {
                 setupRoundQuestion(room);
 
         room.phase = "QUESTION";
-        room.timeLeft = room.currentQuestionType === "word_hunt" ? 20 : 20;
+        room.timeLeft = 20;
 
           io.to(roomCode).emit("room_update", getSafeRoom(room));
           if (room.questionTimer) {
@@ -1111,7 +1111,7 @@ socket.on("toggle_result_ready", ({ roomCode }) => {
       setupRoundQuestion(room);
 
       room.phase = "QUESTION";
-      room.timeLeft = room.currentQuestionType === "word_hunt" ? 30 : 10;
+      room.timeLeft = room.currentQuestionType === "word_hunt" ? 20 : 20;
 
       io.to(roomCode).emit("room_update", getSafeRoom(room));
       if (room.questionTimer) {
